@@ -1,0 +1,50 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// Lado "uno" de la relacion 1:N con Espacio
+model TipoEspacio {
+  id       Int       @id @default(autoincrement())
+  nombre   String    @unique
+  espacios Espacio[]
+}
+
+// Lado "muchos": cada espacio pertenece a un unico TipoEspacio (foreignKey: tipoEspacioId)
+model Espacio {
+  id            Int         @id @default(autoincrement())
+  nombre        String
+  descripcion   String?
+  precioPorHora Float
+  disponible    Boolean     @default(true)
+  tipoEspacio   TipoEspacio @relation(fields: [tipoEspacioId], references: [id])
+  tipoEspacioId Int
+  reservas      Reserva[]
+  createdAt     DateTime    @default(now())
+}
+
+// Lado "uno" de la relacion 1:N con Reserva
+model Usuario {
+  id        Int       @id @default(autoincrement())
+  nombre    String
+  email     String    @unique
+  reservas  Reserva[]
+  createdAt DateTime  @default(now())
+}
+
+// Lado "muchos": cada reserva pertenece a un Usuario y a un Espacio
+model Reserva {
+  id          Int      @id @default(autoincrement())
+  usuario     Usuario  @relation(fields: [usuarioId], references: [id])
+  usuarioId   Int
+  espacio     Espacio  @relation(fields: [espacioId], references: [id])
+  espacioId   Int
+  fechaInicio DateTime
+  fechaFin    DateTime
+  estado      String   @default("pendiente")
+  createdAt   DateTime @default(now())
+}
